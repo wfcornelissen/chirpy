@@ -1,3 +1,3 @@
-module githib.com/wfcornelissen/chirpy
+module github.com/wfcornelissen/chirpy
 
 go 1.23.5
