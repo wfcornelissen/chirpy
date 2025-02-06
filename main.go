@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync/atomic"
 )
 
@@ -19,9 +20,14 @@ func (cfg *apiConfig) middewareMetricsInc(next http.Handler) http.Handler {
 }
 
 func (cfg *apiConfig) metricsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	content, err := os.ReadFile("chirpyAdmin.html")
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("Hits: %d", cfg.fileserverHits.Load())))
+	w.Write([]byte(fmt.Sprintf(string(content), cfg.fileserverHits.Load())))
 }
 
 func (cfg *apiConfig) resetHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,8 +43,8 @@ func main() {
 	apiCfg := &apiConfig{}
 	mux := http.NewServeMux()
 	mux.Handle("/app/", apiCfg.middewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))))
-	mux.HandleFunc("GET /api/metrics", apiCfg.metricsHandler)
-	mux.HandleFunc("POST /api/reset", apiCfg.resetHandler)
+	mux.HandleFunc("GET /admin/metrics", apiCfg.metricsHandler)
+	mux.HandleFunc("POST /admin/reset", apiCfg.resetHandler)
 	mux.HandleFunc("GET /api/healthz", OkCheck)
 
 	srv := &http.Server{
