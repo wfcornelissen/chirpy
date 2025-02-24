@@ -1,4 +1,6 @@
 -- +goose Up
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE users (
     id uuid PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -8,3 +10,4 @@ CREATE TABLE users (
 
 -- +goose Down
 DROP TABLE users;
+DROP EXTENSION IF EXISTS "uuid-ossp";
