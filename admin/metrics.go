@@ -3,14 +3,10 @@ package admin
 import (
 	"fmt"
 	"net/http"
-	"sync/atomic"
+	"github.com/wfcornelissen/chirpy/types"
 )
 
-type ApiConfig struct {
-	fileserverHits atomic.Int32
-}
-
-func HandlerMetrics(cfg *ApiConfig) http.HandlerFunc {
+func HandlerMetrics(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Add("Content-Type", "text/html")
 		res.WriteHeader(http.StatusOK)
@@ -20,21 +16,21 @@ func HandlerMetrics(cfg *ApiConfig) http.HandlerFunc {
     <h1>Welcome, Chirpy Admin</h1>
     <p>Chirpy has been visited %d times!</p>
   </body>
-</html>`, cfg.fileserverHits.Load())))
+</html>`, cfg.FileserverHits.Load())))
 	}
 }
 
-func MetricsReset(cfg *ApiConfig) http.HandlerFunc {
+func MetricsReset(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		cfg.fileserverHits.Store(0)
+		cfg.FileserverHits.Store(0)
 		res.WriteHeader(http.StatusOK)
 		res.Write([]byte("Hits reset to 0"))
 	}
 }
 
-func MiddlewareMetricsInc(cfg *ApiConfig, next http.Handler) http.Handler {
+func MiddlewareMetricsInc(cfg *types.ApiConfig, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		cfg.fileserverHits.Add(1)
+		cfg.FileserverHits.Add(1)
 		next.ServeHTTP(res, req)
 	})
 }
