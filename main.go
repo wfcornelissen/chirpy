@@ -3,22 +3,19 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"sync/atomic"
+
+	"github.com/wfcornelissen/chirpy/admin"
 )
 
-type apiConfig struct {
-	fileserverHits atomic.Int32
-}
-
 func main() {
-	cfg := &apiConfig{}
+	cfg := &admin.ApiConfig{}
 	mux := http.NewServeMux()
 	fileserver := http.FileServer(http.Dir("."))
-	mux.Handle("/app/", cfg.middlewareMetricsInc(http.StripPrefix("/app", fileserver)))
-	mux.Handle("/assets/logo.png", fileserver)
-	mux.HandleFunc("/healthz", readyEndpoint)
-	mux.HandleFunc("/metrics", cfg.handlerMetrics)
-	mux.HandleFunc("/reset", cfg.metricsReset)
+	mux.Handle("/app/", admin.MiddlewareMetricsInc(cfg, http.StripPrefix("/app", fileserver)))
+	mux.Handle("/app/assets/logo.png", fileserver)
+	mux.HandleFunc("GET /admin/healthz", admin.ReadyEndpoint)
+	mux.HandleFunc("GET /admin/metrics", admin.HandlerMetrics(cfg))
+	mux.HandleFunc("POST /admin/reset", admin.MetricsReset(cfg))
 
 	server := http.Server{
 		Addr:    ":8080",
