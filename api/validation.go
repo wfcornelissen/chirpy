@@ -1,8 +1,9 @@
 package api
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
+
 	"github.com/wfcornelissen/chirpy/types"
 )
 
@@ -28,7 +29,8 @@ func ValidateChirp(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	chirp.Valid = true
+	chirp.Cleaned_body = ""
+
 	bod, err := json.Marshal(chirp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -38,5 +40,5 @@ func ValidateChirp(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(bod)
-	return
+
 }

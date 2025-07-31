@@ -7,6 +7,6 @@ type ApiConfig struct {
 }
 
 type Chirp struct {
-	Body string `json:"body" default:""`
-	Valid bool `json:"valid" default:"false"`
+	Body         string `json:"body" default:""`
+	Cleaned_body string `json:"valid" default:""`
 }
