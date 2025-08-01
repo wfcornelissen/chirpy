@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/wfcornelissen/chirpy/types"
 )
@@ -30,6 +31,16 @@ func ValidateChirp(w http.ResponseWriter, req *http.Request) {
 	}
 
 	chirp.Cleaned_body = ""
+	words := strings.Split(chirp.Body, " ")
+	for _, word := range words {
+		switch strings.ToLower(word) {
+		case "kerfuffle", "sharbert", "fornax":
+			chirp.Cleaned_body += "**** "
+		default:
+			chirp.Cleaned_body += word + " "
+		}
+	}
+	chirp.Cleaned_body = strings.TrimSpace(chirp.Cleaned_body)
 
 	bod, err := json.Marshal(chirp)
 	if err != nil {

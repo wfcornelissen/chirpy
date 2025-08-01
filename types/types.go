@@ -8,5 +8,5 @@ type ApiConfig struct {
 
 type Chirp struct {
 	Body         string `json:"body" default:""`
-	Cleaned_body string `json:"valid" default:""`
+	Cleaned_body string `json:"cleaned_body" default:""`
 }
