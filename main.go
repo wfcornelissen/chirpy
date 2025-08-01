@@ -1,9 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/wfcornelissen/chirpy/admin"
 	"github.com/wfcornelissen/chirpy/api"
@@ -11,6 +14,10 @@ import (
 )
 
 func main() {
+	godotenv.Load()
+	dbURL := os.Getenv("DB_URL")
+	sql.Open("postgres", dbURL)
+
 	cfg := &types.ApiConfig{}
 	mux := http.NewServeMux()
 	fileserver := http.FileServer(http.Dir("."))
