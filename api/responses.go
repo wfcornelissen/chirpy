@@ -1,17 +1,18 @@
 package api
 
-func RespondWithError() {
+import "net/http"
 
+func RespondWithBadRequest(res http.ResponseWriter, message string) {
+	res.WriteHeader(http.StatusBadRequest)
+	res.Write([]byte(message))
 }
 
-func RespondWithOK() {
-
+func RespondWithForbidden(res http.ResponseWriter, message string) {
+	res.WriteHeader(http.StatusBadRequest)
+	res.Write([]byte(message))
 }
 
-func RespondWithForbidden() {
-
-}
-
-func RespondWithInternalServerError() {
-
+func RespondWithInternalServerError(res http.ResponseWriter, message string) {
+	res.WriteHeader(http.StatusBadRequest)
+	res.Write([]byte(message))
 }

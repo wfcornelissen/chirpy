@@ -20,8 +20,7 @@ func CreateUser(res http.ResponseWriter, req *http.Request) {
 	tempUser := types.User{}
 	err := decoder.Decode(&tempUser)
 	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		res.Write([]byte("Couldn Decode JSON"))
+		RespondWithInternalServerError(res, "Internal Error: Couldn't Decode JSON")
 		return
 	}
 
@@ -31,8 +30,7 @@ func CreateUser(res http.ResponseWriter, req *http.Request) {
 
 	NewUser, err := json.Marshal(user)
 	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		res.Write([]byte("Couldn't Marshal Response"))
+		RespondWithInternalServerError(res, "Internal Error: Couldn't Marshal JSON")
 		return
 	}
 	res.WriteHeader(http.StatusCreated)

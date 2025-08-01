@@ -8,29 +8,26 @@ import (
 	"github.com/wfcornelissen/chirpy/types"
 )
 
-func CreateChirp() {
+func CreateChirp(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func ValidateChirp(w http.ResponseWriter, req *http.Request) {
+func ValidateChirp(res http.ResponseWriter, req *http.Request) {
 	chirp := types.Chirp{}
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&chirp)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Couldn't decode JSON"))
+		RespondWithInternalServerError(res, "Couldn't decode JSON")
 		return
 	}
 
 	if len(chirp.Body) > 140 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Chirp is too long"))
+		RespondWithBadRequest(res, "Chirp too long")
 		return
 	}
 
 	if len(chirp.Body) < 1 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("No Chirp Content"))
+		RespondWithBadRequest(res, "No content")
 		return
 	}
 
@@ -48,12 +45,11 @@ func ValidateChirp(w http.ResponseWriter, req *http.Request) {
 
 	bod, err := json.Marshal(chirp)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Couldn't encode JSON"))
+		RespondWithInternalServerError(res, "Couldn't encode JSON")
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(bod)
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+	res.Write(bod)
 
 }
