@@ -3,6 +3,7 @@ package admin
 import (
 	"fmt"
 	"net/http"
+
 	"github.com/wfcornelissen/chirpy/types"
 )
 
@@ -21,10 +22,15 @@ func HandlerMetrics(cfg *types.ApiConfig) http.HandlerFunc {
 }
 
 func MetricsReset(cfg *types.ApiConfig) http.HandlerFunc {
+	if cfg.Platform != "dev" {
+		return func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusForbidden)
+			res.Write([]byte("You do not have the correct permissions"))
+		}
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
-		cfg.FileserverHits.Store(0)
+		cfg.Dbquery.DeleteAllUsers(req.Context())
 		res.WriteHeader(http.StatusOK)
-		res.Write([]byte("Hits reset to 0"))
 	}
 }
 
