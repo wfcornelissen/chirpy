@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	_ "github.com/lib/pq"
 	"github.com/wfcornelissen/chirpy/admin"
-	"github.com/wfcornelissen/chirpy/types"
 	"github.com/wfcornelissen/chirpy/api"
+	"github.com/wfcornelissen/chirpy/types"
 )
 
 func main() {
