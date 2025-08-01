@@ -8,6 +8,10 @@ import (
 	"github.com/wfcornelissen/chirpy/types"
 )
 
+func CreateChirp() {
+
+}
+
 func ValidateChirp(w http.ResponseWriter, req *http.Request) {
 	chirp := types.Chirp{}
 	decoder := json.NewDecoder(req.Body)
