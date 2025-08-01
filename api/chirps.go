@@ -14,6 +14,8 @@ func CreateChirp(res http.ResponseWriter, req *http.Request) {
 
 func ValidateChirp(res http.ResponseWriter, req *http.Request) {
 	chirp := types.Chirp{}
+
+	//Decode
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&chirp)
 	if err != nil {
@@ -21,16 +23,17 @@ func ValidateChirp(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//Lencheck
 	if len(chirp.Body) > 140 {
 		RespondWithBadRequest(res, "Chirp too long")
 		return
 	}
-
 	if len(chirp.Body) < 1 {
 		RespondWithBadRequest(res, "No content")
 		return
 	}
 
+	//The Profane
 	chirp.Cleaned_body = ""
 	words := strings.Split(chirp.Body, " ")
 	for _, word := range words {
@@ -43,6 +46,7 @@ func ValidateChirp(res http.ResponseWriter, req *http.Request) {
 	}
 	chirp.Cleaned_body = strings.TrimSpace(chirp.Cleaned_body)
 
+	//Response
 	bod, err := json.Marshal(chirp)
 	if err != nil {
 		RespondWithInternalServerError(res, "Couldn't encode JSON")
