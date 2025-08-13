@@ -14,7 +14,7 @@ type Chirp struct {
 	ID        uuid.UUID
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
-	Body      string
+	Body      string `json:"body"`
 	UserID    uuid.UUID
 }
 
