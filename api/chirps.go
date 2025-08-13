@@ -9,7 +9,7 @@ import (
 )
 
 func CreateChirp(res http.ResponseWriter, req *http.Request) {
-
+	chirp := types.Chirp{}
 }
 
 func ValidateChirp(res http.ResponseWriter, req *http.Request) {
