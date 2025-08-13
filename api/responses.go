@@ -21,3 +21,8 @@ func RespondWithNotFound(res http.ResponseWriter, message string) {
 	res.WriteHeader(http.StatusNotFound)
 	res.Write([]byte(message))
 }
+
+func RespondWithUnauthorised(res http.ResponseWriter, message string) {
+	res.WriteHeader(http.StatusUnauthorized)
+	res.Write([]byte(message))
+}
