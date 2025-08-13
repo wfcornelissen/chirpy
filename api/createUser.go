@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/wfcornelissen/chirpy/internal/auth"
 	"github.com/wfcornelissen/chirpy/types"
 )
 
@@ -16,7 +17,11 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 			EAddress:  "",
+			Password:  "",
 		}
+		pass, err := req.URL.User.Password()
+		hashedPass, err := auth.HashPassword(pass)
+
 		decoder := json.NewDecoder(req.Body)
 		tempUser := types.User{}
 		err := decoder.Decode(&tempUser)
