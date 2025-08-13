@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/wfcornelissen/chirpy/internal/database"
 	"github.com/wfcornelissen/chirpy/types"
 )
@@ -76,6 +77,24 @@ func CreateChirp(cfg *types.ApiConfig) http.HandlerFunc {
 func GetAllChirps(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		result, err := cfg.Dbquery.GetAllChirps(req.Context())
+		if err != nil {
+			RespondWithInternalServerError(res, "Error retrieving from DB.")
+		}
+
+		allChirps, err := json.Marshal(result)
+		if err != nil {
+			RespondWithInternalServerError(res, "Trouble encoding")
+		}
+
+		res.WriteHeader(http.StatusOK)
+		res.Write(allChirps)
+
+	}
+}
+
+func GetChirp(cfg *types.ApiConfig) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		result, err := cfg.Dbquery.GetChirp(req.Context(), uuid.MustParse(req.URL.Query().Get("id")))
 		if err != nil {
 			RespondWithInternalServerError(res, "Error retrieving from DB.")
 		}
