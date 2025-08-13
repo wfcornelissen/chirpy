@@ -18,9 +18,9 @@ type Chirp struct {
 	Id   uuid.UUID `json:"id"`
 	Body string    `json:"body" default:""`
 	// CleanedBody string     `json:"cleaned_body" default:""`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	UserID    uuid.UUIDs `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UserID    uuid.UUID `json:"user_id"`
 }
 
 type User struct {

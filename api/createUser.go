@@ -9,30 +9,38 @@ import (
 	"github.com/wfcornelissen/chirpy/types"
 )
 
-func CreateUser(res http.ResponseWriter, req *http.Request) {
-	user := types.User{
-		UserID:    uuid.New(),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		EAddress:  "",
-	}
-	decoder := json.NewDecoder(req.Body)
-	tempUser := types.User{}
-	err := decoder.Decode(&tempUser)
-	if err != nil {
-		RespondWithInternalServerError(res, "Internal Error: Couldn't Decode JSON")
-		return
-	}
+func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		user := types.User{
+			UserID:    uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			EAddress:  "",
+		}
+		decoder := json.NewDecoder(req.Body)
+		tempUser := types.User{}
+		err := decoder.Decode(&tempUser)
+		if err != nil {
+			RespondWithInternalServerError(res, "Internal Error: Couldn't Decode JSON")
+			return
+		}
 
-	if tempUser.EAddress != "" {
-		user.EAddress = tempUser.EAddress
-	}
+		if tempUser.EAddress != "" {
+			user.EAddress = tempUser.EAddress
+		}
 
-	NewUser, err := json.Marshal(user)
-	if err != nil {
-		RespondWithInternalServerError(res, "Internal Error: Couldn't Marshal JSON")
-		return
+		dbUser, err := cfg.Dbquery.CreateUser(req.Context(), user.EAddress)
+		user.UserID = dbUser.ID
+		user.CreatedAt = dbUser.CreatedAt.Time
+		user.UpdatedAt = dbUser.UpdatedAt.Time
+		user.EAddress = dbUser.Email
+
+		NewUser, err := json.Marshal(user)
+		if err != nil {
+			RespondWithInternalServerError(res, "Internal Error: Couldn't Marshal JSON")
+			return
+		}
+		res.WriteHeader(http.StatusCreated)
+		res.Write(NewUser)
 	}
-	res.WriteHeader(http.StatusCreated)
-	res.Write(NewUser)
 }

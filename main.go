@@ -37,9 +37,10 @@ func main() {
 	mux.Handle("/app/assets/logo.png", fileserver)
 	mux.HandleFunc("GET /admin/healthz", admin.ReadyEndpoint)
 	mux.HandleFunc("GET /admin/metrics", admin.HandlerMetrics(cfg))
-	mux.HandleFunc("POST /admin/reset", admin.MetricsReset(cfg))
-	mux.HandleFunc("POST /api/users", api.CreateUser)
-	mux.HandleFunc("POST /api/chirps", api.CreateChirp)
+	mux.HandleFunc("POST /admin/reset", AdminDeleteUsers(cfg))
+	mux.HandleFunc("POST /api/users", api.CreateUser(cfg))
+	mux.HandleFunc("POST /api/chirps", api.CreateChirp(cfg))
+	mux.HandleFunc("GET /api/chirps", api.GetAllChirps(cfg))
 
 	server := http.Server{
 		Addr:    ":8080",
