@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 
@@ -94,9 +95,12 @@ func GetAllChirps(cfg *types.ApiConfig) http.HandlerFunc {
 
 func GetChirp(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		result, err := cfg.Dbquery.GetChirp(req.Context(), uuid.MustParse(req.URL.Query().Get("id")))
+		chirpID := req.URL.Path[len("/api/chirps/"):]
+		log.Println(chirpID)
+		result, err := cfg.Dbquery.GetChirp(req.Context(), uuid.MustParse(chirpID))
 		if err != nil {
-			RespondWithInternalServerError(res, "Error retrieving from DB.")
+			RespondWithNotFound(res, "Chirp not found")
+			return
 		}
 
 		allChirps, err := json.Marshal(result)
