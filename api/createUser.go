@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/wfcornelissen/chirpy/internal/auth"
+	"github.com/wfcornelissen/chirpy/internal/database"
 	"github.com/wfcornelissen/chirpy/types"
 )
 
@@ -19,8 +20,6 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 			EAddress:  "",
 			Password:  "",
 		}
-		pass, err := req.URL.User.Password()
-		hashedPass, err := auth.HashPassword(pass)
 
 		decoder := json.NewDecoder(req.Body)
 		tempUser := types.User{}
@@ -33,12 +32,26 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 		if tempUser.EAddress != "" {
 			user.EAddress = tempUser.EAddress
 		}
+		pass, hasPass := req.URL.User.Password()
+		if !hasPass {
+			RespondWithInternalServerError(res, "Failed to retrieve password during CreateUser.")
+		}
 
-		dbUser, err := cfg.Dbquery.CreateUser(req.Context(), user.EAddress)
+		user.Password, err = auth.HashPassword(pass)
+		if err != nil {
+			RespondWithInternalServerError(res, "Failed to hash password during CreateUser.")
+		}
+
+		params := database.CreateUserParams{
+			Email:        user.EAddress,
+			PasswordHash: user.Password,
+		}
+		dbUser, err := cfg.Dbquery.CreateUser(req.Context(), params)
 		user.UserID = dbUser.ID
 		user.CreatedAt = dbUser.CreatedAt.Time
 		user.UpdatedAt = dbUser.UpdatedAt.Time
 		user.EAddress = dbUser.Email
+		user.Password = ""
 
 		NewUser, err := json.Marshal(user)
 		if err != nil {

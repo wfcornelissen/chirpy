@@ -14,13 +14,14 @@ type Chirp struct {
 	ID        uuid.UUID
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
-	Body      string `json:"body"`
+	Body      string
 	UserID    uuid.UUID
 }
 
 type User struct {
-	ID        uuid.UUID
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
-	Email     string
+	ID           uuid.UUID
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+	Email        string
+	PasswordHash string
 }
