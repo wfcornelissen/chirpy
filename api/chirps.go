@@ -4,15 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/wfcornelissen/chirpy/types"
 )
 
 func CreateChirp(res http.ResponseWriter, req *http.Request) {
-	chirp := types.Chirp{}
-}
-
-func ValidateChirp(res http.ResponseWriter, req *http.Request) {
 	chirp := types.Chirp{}
 
 	//Decode
@@ -34,26 +32,38 @@ func ValidateChirp(res http.ResponseWriter, req *http.Request) {
 	}
 
 	//The Profane
-	chirp.Cleaned_body = ""
+	CleanedBody := ""
 	words := strings.Split(chirp.Body, " ")
 	for _, word := range words {
 		switch strings.ToLower(word) {
 		case "kerfuffle", "sharbert", "fornax":
-			chirp.Cleaned_body += "**** "
+			CleanedBody += "**** "
 		default:
-			chirp.Cleaned_body += word + " "
+			CleanedBody += word + " "
 		}
 	}
-	chirp.Cleaned_body = strings.TrimSpace(chirp.Cleaned_body)
+	CleanedBody = strings.TrimSpace(CleanedBody)
 
-	//Response
-	bod, err := json.Marshal(chirp)
+	// 1/4
+	chirp.Body = CleanedBody
+
+	//Timestamps and UIDs
+	// 2/4
+	chirp.Id, err = uuid.NewUUID()
+	if err != nil {
+		RespondWithInternalServerError(res, "Couldn't create ID.")
+	}
+	time := time.Now()
+	// 3/4
+	chirp.CreatedAt = time
+	// 4/4
+	chirp.UpdatedAt = time
+
+	result, err := json.Marshal(chirp)
 	if err != nil {
 		RespondWithInternalServerError(res, "Couldn't encode JSON")
 		return
 	}
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusOK)
-	res.Write(bod)
 
+	// DB logic
 }

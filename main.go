@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -27,6 +28,9 @@ func main() {
 	cfg := &types.ApiConfig{}
 	cfg.Dbquery = database.New(db)
 	cfg.Platform = os.Getenv("PLATFORM")
+	if cfg.Platform == "" {
+		log.Fatal("PLATFORM must be set")
+	}
 	mux := http.NewServeMux()
 	fileserver := http.FileServer(http.Dir("."))
 	mux.Handle("/app/", admin.MiddlewareMetricsInc(cfg, http.StripPrefix("/app", fileserver)))

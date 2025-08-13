@@ -15,8 +15,12 @@ type ApiConfig struct {
 }
 
 type Chirp struct {
-	Body         string `json:"body" default:""`
-	Cleaned_body string `json:"cleaned_body" default:""`
+	Id   uuid.UUID `json:"id"`
+	Body string    `json:"body" default:""`
+	// CleanedBody string     `json:"cleaned_body" default:""`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	UserID    uuid.UUIDs `json:"user_id"`
 }
 
 type User struct {
