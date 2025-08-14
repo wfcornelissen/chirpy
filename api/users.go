@@ -11,11 +11,6 @@ import (
 	"github.com/wfcornelissen/chirpy/types"
 )
 
-func validateUser(req *http.Request) (types.User, bool) {
-
-	return user, true
-}
-
 func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := types.User{
@@ -40,7 +35,6 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 		if !hasPass {
 			RespondWithInternalServerError(res, "Failed to retrieve password during CreateUser.")
 		}
-		var err error
 		user.Password, err = auth.HashPassword(pass)
 		if err != nil {
 			RespondWithInternalServerError(res, "Failed to hash password during CreateUser.")
@@ -64,31 +58,5 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 		}
 		res.WriteHeader(http.StatusCreated)
 		res.Write(NewUser)
-	}
-}
-
-func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		user, isValid := validateUser(req)
-		if !isValid {
-			RespondWithInternalServerError(res, "Failed to validate user during UserLogin.")
-		}
-
-		dbUser, err := cfg.Dbquery.FindUser(req.Context(), user.EAddress)
-		if err != nil {
-			RespondWithNotFound(res, "User not found")
-		}
-
-		err = auth.CompareHashAndPassword(user.Password, dbUser.PasswordHash)
-		if err != nil {
-			RespondWithUnauthorised(res, "Incorrect email or password")
-		}
-
-		user.Password = ""
-
-		responseUser, err := json.Marshal(user)
-
-		res.WriteHeader(http.StatusOK)
-		res.Write(responseUser)
 	}
 }
