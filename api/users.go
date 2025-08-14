@@ -60,3 +60,45 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 		res.Write(NewUser)
 	}
 }
+
+func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		user := types.User{
+			UserID:    uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			EAddress:  "",
+			Password:  "",
+		}
+
+		decoder := json.NewDecoder(req.Body)
+		err := decoder.Decode(&user)
+		if err != nil {
+			RespondWithInternalServerError(res, "failed to decode during UserLogin")
+		}
+
+		if user.EAddress == "" {
+			RespondWithBadRequest(res, "No email supplied.")
+		}
+
+		dbUser, err := cfg.Dbquery.FindUser(req.Context(), user.EAddress)
+		if err != nil {
+			RespondWithNotFound(res, "User not found in UserLogin.")
+		}
+
+		err = auth.CompareHashAndPassword(user.Password, dbUser.PasswordHash)
+		if err != nil {
+			RespondWithUnauthorised(res, "Incorrect email or password")
+		}
+
+		dbUser.PasswordHash = ""
+		result, err := json.Marshal(dbUser)
+		if err != nil {
+			RespondWithInternalServerError(res, "Error Marshalling user in UserLogin")
+			return
+		}
+
+		res.WriteHeader(http.StatusOK)
+		res.Write(result)
+	}
+}
