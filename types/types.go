@@ -34,4 +34,5 @@ type User struct {
 type UserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Bearer   string `json:"bearer"`
 }
