@@ -56,7 +56,7 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 	}
 }
 
-func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
+func UserLogin(cfg *types.ApiConfig, expiresInSeconds int) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		userRequest := types.UserRequest{
 			Email:    "",
