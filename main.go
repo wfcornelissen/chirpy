@@ -28,6 +28,7 @@ func main() {
 	cfg := &types.ApiConfig{}
 	cfg.Dbquery = database.New(db)
 	cfg.Platform = os.Getenv("PLATFORM")
+	cfg.Secret = os.Getenv("SECRET_STRING")
 	if cfg.Platform == "" {
 		log.Fatal("PLATFORM must be set")
 	}

@@ -12,6 +12,7 @@ type ApiConfig struct {
 	FileserverHits atomic.Int32
 	Dbquery        *database.Queries
 	Platform       string
+	Secret         string
 }
 
 type Chirp struct {
