@@ -15,3 +15,7 @@ DELETE FROM users;
 -- name: FindUser :one
 SELECT * FROM users
 WHERE email = $1;
+
+-- name: FindUserByUUID :one
+SELECT * FROM users
+WHERE id = $1;

@@ -7,17 +7,44 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/wfcornelissen/chirpy/internal/auth"
 	"github.com/wfcornelissen/chirpy/internal/database"
 	"github.com/wfcornelissen/chirpy/types"
 )
 
 func CreateChirp(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		userToken, err := auth.GetBearerToken(req.Header)
+		if err != nil {
+			RespondWithInternalServerError(res, "Couldn't retrieve user token")
+			return
+		}
+		if userToken == "" {
+			RespondWithUnauthorised(res, "No token provided")
+			return
+		}
+
+		log.Printf("Token: %s", userToken)
+		log.Printf("Secret: %s", cfg.Secret)
+
+		userID, err := auth.ValidateJWT(userToken, cfg.Secret)
+		if err != nil {
+			log.Printf("JWT validation error: %v", err)
+			RespondWithUnauthorised(res, "Token could not be validated in CreateChirp")
+			return
+		}
+
+		_, err = cfg.Dbquery.FindUserByUUID(req.Context(), userID)
+		if err != nil {
+			RespondWithNotFound(res, "User not found in CreateChirp")
+			return
+		}
+
 		chirp := types.Chirp{}
 
 		//Decode
 		decoder := json.NewDecoder(req.Body)
-		err := decoder.Decode(&chirp)
+		err = decoder.Decode(&chirp)
 		if err != nil {
 			RespondWithInternalServerError(res, "Couldn't decode JSON")
 			return
@@ -48,6 +75,9 @@ func CreateChirp(cfg *types.ApiConfig) http.HandlerFunc {
 
 		// 1/4
 		chirp.Body = CleanedBody
+
+		// Set the user ID from the validated token
+		chirp.UserID = userID
 
 		// Create DB entry
 		dbChirp, err := cfg.Dbquery.CreateChirp(req.Context(), database.CreateChirpParams{Body: chirp.Body, UserID: chirp.UserID})

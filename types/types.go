@@ -30,10 +30,12 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Password  string    `json:"password"`
 	EAddress  string    `json:"email"`
+	Token     string    `json:"token"`
 }
 
 type UserRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Bearer   string `json:"bearer"`
+	Email            string `json:"email"`
+	Password         string `json:"password"`
+	Bearer           string `json:"bearer"`
+	ExpiresInSeconds int    `json:"expires_in_seconds"`
 }

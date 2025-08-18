@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -23,12 +24,17 @@ func CompareHashAndPassword(password, hash string) error {
 }
 
 func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
+	now := time.Now().UTC()
+	expiresAt := now.Add(expiresIn)
+
+	log.Printf("Creating JWT - Now: %v, Expires: %v, Duration: %v", now, expiresAt, expiresIn)
+
 	newToken := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.RegisteredClaims{
 			Issuer:    "chirpy",
-			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(expiresIn)),
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			Subject:   userID.String(),
 		})
 

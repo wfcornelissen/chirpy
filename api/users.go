@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/wfcornelissen/chirpy/internal/auth"
 	"github.com/wfcornelissen/chirpy/internal/database"
@@ -24,13 +25,16 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 
 		if user.Email == "" {
 			RespondWithBadRequest(res, "Email is required to create user in CreateUser.")
+			return
 		}
 		if user.Password == "" {
 			RespondWithBadRequest(res, "Password is required in CreateUser.")
+			return
 		}
 		user.Password, err = auth.HashPassword(user.Password)
 		if err != nil {
 			RespondWithInternalServerError(res, "Failed to hash password during CreateUser.")
+			return
 		}
 
 		params := database.CreateUserParams{
@@ -56,11 +60,12 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 	}
 }
 
-func UserLogin(cfg *types.ApiConfig, expiresInSeconds int) http.HandlerFunc {
+func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		userRequest := types.UserRequest{
-			Email:    "",
-			Password: "",
+			Email:            "",
+			Password:         "",
+			ExpiresInSeconds: 0,
 		}
 
 		decoder := json.NewDecoder(req.Body)
@@ -70,16 +75,26 @@ func UserLogin(cfg *types.ApiConfig, expiresInSeconds int) http.HandlerFunc {
 		}
 		if userRequest.Email == "" {
 			RespondWithBadRequest(res, "No email supplied.")
+			return
+		}
+		if userRequest.ExpiresInSeconds > 3600 || userRequest.ExpiresInSeconds == 0 {
+			userRequest.ExpiresInSeconds = 3600
 		}
 
 		dbUser, err := cfg.Dbquery.FindUser(req.Context(), userRequest.Email)
 		if err != nil {
 			RespondWithNotFound(res, "User not found in UserLogin.")
+			return
 		}
 
 		err = auth.CompareHashAndPassword(userRequest.Password, dbUser.PasswordHash)
 		if err != nil {
 			RespondWithUnauthorised(res, "Incorrect email or password")
+			return
+		}
+		tokenString, err := auth.MakeJWT(dbUser.ID, cfg.Secret, time.Duration(userRequest.ExpiresInSeconds)*time.Second)
+		if err != nil {
+			RespondWithInternalServerError(res, "Failed to create token in UserLogin")
 		}
 
 		newUser := types.User{
@@ -88,6 +103,7 @@ func UserLogin(cfg *types.ApiConfig, expiresInSeconds int) http.HandlerFunc {
 			UpdatedAt: dbUser.UpdatedAt.Time,
 			EAddress:  dbUser.Email,
 			Password:  "",
+			Token:     tokenString,
 		}
 
 		result, err := json.Marshal(newUser)
