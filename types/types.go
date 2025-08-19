@@ -25,17 +25,26 @@ type Chirp struct {
 }
 
 type User struct {
-	UserID    uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Password  string    `json:"password"`
-	EAddress  string    `json:"email"`
-	Token     string    `json:"token"`
+	UserID       uuid.UUID `json:"id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Password     string    `json:"password"`
+	EAddress     string    `json:"email"`
+	AccessToken  string    `json:"token"`
+	RefreshToken string    `json:"refresh_token"`
 }
 
 type UserRequest struct {
-	Email            string `json:"email"`
-	Password         string `json:"password"`
-	Bearer           string `json:"bearer"`
-	ExpiresInSeconds int    `json:"expires_in_seconds"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Bearer   string `json:"bearer"`
+}
+
+type RefreshToken struct {
+	Token     string    `json:"token"`
+	ExpiresAt time.Time `json:"expires_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UserID    uuid.UUID `json:"user_id"`
+	RevokedAt time.Time `json:"revoked_at"`
 }

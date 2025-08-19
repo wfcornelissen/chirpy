@@ -63,9 +63,8 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		userRequest := types.UserRequest{
-			Email:            "",
-			Password:         "",
-			ExpiresInSeconds: 0,
+			Email:    "",
+			Password: "",
 		}
 
 		decoder := json.NewDecoder(req.Body)
@@ -76,9 +75,6 @@ func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
 		if userRequest.Email == "" {
 			RespondWithBadRequest(res, "No email supplied.")
 			return
-		}
-		if userRequest.ExpiresInSeconds > 3600 || userRequest.ExpiresInSeconds == 0 {
-			userRequest.ExpiresInSeconds = 3600
 		}
 
 		dbUser, err := cfg.Dbquery.FindUser(req.Context(), userRequest.Email)
@@ -92,18 +88,23 @@ func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
 			RespondWithUnauthorised(res, "Incorrect email or password")
 			return
 		}
-		tokenString, err := auth.MakeJWT(dbUser.ID, cfg.Secret, time.Duration(userRequest.ExpiresInSeconds)*time.Second)
+		tokenString, err := auth.MakeJWT(dbUser.ID, cfg.Secret, time.Duration(3600)*time.Second)
 		if err != nil {
 			RespondWithInternalServerError(res, "Failed to create token in UserLogin")
 		}
+		refreshToken, err := auth.MakeRefreshToken()
+		if err != nil {
+			RespondWithInternalServerError(res, "Failed to create refresh token in UserLogin")
+		}
 
 		newUser := types.User{
-			UserID:    dbUser.ID,
-			CreatedAt: dbUser.CreatedAt.Time,
-			UpdatedAt: dbUser.UpdatedAt.Time,
-			EAddress:  dbUser.Email,
-			Password:  "",
-			Token:     tokenString,
+			UserID:       dbUser.ID,
+			CreatedAt:    dbUser.CreatedAt.Time,
+			UpdatedAt:    dbUser.UpdatedAt.Time,
+			EAddress:     dbUser.Email,
+			Password:     "",
+			AccessToken:  tokenString,
+			RefreshToken: refreshToken,
 		}
 
 		result, err := json.Marshal(newUser)
