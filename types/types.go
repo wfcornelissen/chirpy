@@ -18,7 +18,7 @@ type ApiConfig struct {
 type Chirp struct {
 	Id   uuid.UUID `json:"id"`
 	Body string    `json:"body" default:""`
-	// CleanedBody string     `json:"cleaned_body" default:""`
+	// CleanedBody string     `json:"cleaned_body" default:""` --DEPRECATED
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	UserID    uuid.UUID `json:"user_id"`
@@ -42,9 +42,9 @@ type UserRequest struct {
 
 type RefreshToken struct {
 	Token     string    `json:"token"`
-	ExpiresAt time.Time `json:"expires_at"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	UserID    uuid.UUID `json:"user_id"`
+	ExpiresAt time.Time `json:"expires_at"`
 	RevokedAt time.Time `json:"revoked_at"`
 }
