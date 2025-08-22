@@ -26,13 +26,13 @@ type Chirp struct {
 }
 
 type User struct {
-	UserID       uuid.UUID `json:"id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	Password     string    `json:"password"`
-	EAddress     string    `json:"email"`
-	AccessToken  string    `json:"token"`
-	RefreshToken string    `json:"refresh_token"`
+	UserID       uuid.UUID    `json:"id"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
+	Password     string       `json:"password"`
+	EAddress     string       `json:"email"`
+	AccessToken  string       `json:"token"`
+	RefreshToken RefreshToken `json:"refresh_token"`
 }
 
 type UserRequest struct {

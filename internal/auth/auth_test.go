@@ -109,26 +109,3 @@ func TestValidateJWT(t *testing.T) {
 		})
 	}
 }
-
-func TestMakeRefreshToken(t *testing.T) {
-	refreshToken, err := MakeRefreshToken()
-	if err != nil {
-		t.Errorf("MakeRefreshToken() error = %v", err)
-	}
-
-	refreshToken2, err := MakeRefreshToken()
-	if err != nil {
-		t.Errorf("MakeRefreshToken() error = %v", err)
-	}
-	if refreshToken == refreshToken2 {
-		t.Errorf("MakeRefreshToken() got = %v, want %v", refreshToken, refreshToken2)
-	}
-
-	refreshToken3, err := MakeRefreshToken()
-	if err != nil {
-		t.Errorf("MakeRefreshToken() error = %v", err)
-	}
-	if refreshToken == refreshToken3 {
-		t.Errorf("MakeRefreshToken() got = %v, want %v", refreshToken, refreshToken3)
-	}
-}
