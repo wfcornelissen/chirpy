@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -28,11 +27,9 @@ func CompareHashAndPassword(password, hash string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
-func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
+func MakeJWT(userID uuid.UUID, tokenSecret string) (string, error) {
 	now := time.Now().UTC()
-	expiresAt := now.Add(expiresIn)
-
-	log.Printf("Creating JWT - Now: %v, Expires: %v, Duration: %v", now, expiresAt, expiresIn)
+	expiresAt := now.Add(time.Hour)
 
 	newToken := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
