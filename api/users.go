@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/wfcornelissen/chirpy/internal/auth"
 	"github.com/wfcornelissen/chirpy/internal/database"
@@ -88,7 +87,7 @@ func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
 			RespondWithUnauthorised(res, "Incorrect email or password")
 			return
 		}
-		tokenString, err := auth.MakeJWT(dbUser.ID, cfg.Secret, time.Duration(3600)*time.Second)
+		tokenString, err := auth.MakeJWT(dbUser.ID, cfg.Secret)
 		if err != nil {
 			RespondWithInternalServerError(res, "Failed to create token in UserLogin")
 		}
