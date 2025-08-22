@@ -92,7 +92,7 @@ func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
 		if err != nil {
 			RespondWithInternalServerError(res, "Failed to create token in UserLogin")
 		}
-		refreshToken, err := auth.MakeRefreshToken()
+		refreshToken, err := auth.MakeRefreshToken(cfg, dbUser.ID, req)
 		if err != nil {
 			RespondWithInternalServerError(res, "Failed to create refresh token in UserLogin")
 		}

@@ -2,8 +2,8 @@ package auth
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"encoding/hex"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -11,6 +11,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/wfcornelissen/chirpy/internal/database"
+	"github.com/wfcornelissen/chirpy/types"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -73,13 +75,38 @@ func GetBearerToken(headers http.Header) (string, error) {
 	return token, nil
 }
 
-func MakeRefreshToken() (string, error) {
+func MakeRefreshToken(cfg *types.ApiConfig, userID uuid.UUID, req *http.Request) (types.RefreshToken, error) {
+
 	random := make([]byte, 32)
 	_, err := rand.Read(random)
 	if err != nil {
-		return "", err
+		return types.RefreshToken{}, err
 	}
 	result := hex.EncodeToString(random)
-	fmt.Println(result)
-	return result, nil
+
+	timeCreated := time.Now()
+	token := types.RefreshToken{
+		Token:     result,
+		CreatedAt: timeCreated,
+		UpdatedAt: timeCreated,
+		UserID:    userID,
+		ExpiresAt: timeCreated.Add(time.Hour * 24 * 60),
+		RevokedAt: sql.NullTime{Valid: false},
+	}
+
+	dbTokenParams := database.CreateTokenParams{
+		Token:     token.Token,
+		CreatedAt: sql.NullTime{Time: token.CreatedAt, Valid: true},
+		UpdatedAt: sql.NullTime{Time: token.UpdatedAt, Valid: true},
+		UserID:    userID,
+		ExpiresAt: sql.NullTime{Time: token.ExpiresAt, Valid: true},
+		RevokedAt: sql.NullTime{Valid: false},
+	}
+
+	_, err = cfg.Dbquery.CreateToken(req.Context(), dbTokenParams)
+	if err != nil {
+		return types.RefreshToken{}, err
+	}
+
+	return token, nil
 }
