@@ -23,3 +23,11 @@ LIMIT 1;
 -- name: DeleteToken :exec
 DELETE FROM refresh_tokens
 WHERE token = $1;
+
+-- name: RevokeToken :exec
+UPDATE refresh_tokens SET revoked_at = NOW(), updated_at = NOW()
+WHERE token = $1;
+
+-- name: GetUserFromRefreshToken :one
+SELECT * FROM refresh_tokens
+WHERE token = $1;

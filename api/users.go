@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/wfcornelissen/chirpy/internal/auth"
 	"github.com/wfcornelissen/chirpy/internal/database"
@@ -114,5 +116,85 @@ func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
 
 		res.WriteHeader(http.StatusOK)
 		res.Write(result)
+	}
+}
+
+func UserRefreshAccessToken(cfg *types.ApiConfig) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		headers := req.Header
+		presence := false
+		var bearer string
+		for header := range headers {
+			if header == "Authorisation: Bearer" {
+				presence = true
+				bearer = headers[header][0]
+				break
+			}
+		}
+		if presence == false {
+			RespondWithBadRequest(res, "No bearer header.")
+			return
+		}
+		token := strings.TrimPrefix(bearer, "Authorisation: Bearer ")
+		result, err := cfg.Dbquery.GetUserFromRefreshToken(req.Context(), token)
+		if err != nil {
+			RespondWithNotFound(res, "Not found")
+			return
+		}
+		var expiry time.Time
+		if result.ExpiresAt.Valid {
+			expiry = result.ExpiresAt.Time
+		} else {
+			RespondWithInternalServerError(res, "Expiry time was not set properly")
+			return
+		}
+
+		if expiry.Before(time.Now()) {
+			RespondWithUnauthorised(res, "Token expired")
+			return
+		}
+
+		newToken, err := auth.MakeJWT(result.UserID, cfg.Secret)
+		if err != nil {
+			RespondWithInternalServerError(res, "Couldnt generate new token in UserRefresh")
+			return
+		}
+
+		interim := types.NewAccessTokenResponse{Token: newToken}
+		response, err := json.Marshal(interim)
+		if err != nil {
+			RespondWithInternalServerError(res, "Couldnt marshal response in UserRefresh")
+			return
+		}
+		res.WriteHeader(http.StatusOK)
+		res.Write(response)
+	}
+}
+
+func UserRevokeAccessToken(cfg *types.ApiConfig) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		headers := req.Header
+		presence := false
+		var bearer string
+		for header := range headers {
+			if header == "Authorisation: Bearer" {
+				presence = true
+				bearer = headers[header][0]
+				break
+			}
+		}
+		if presence == false {
+			RespondWithBadRequest(res, "No bearer header.")
+			return
+		}
+		token := strings.TrimPrefix(bearer, "Authorisation: Bearer ")
+		err := cfg.Dbquery.RevokeToken(req.Context(), token)
+		if err != nil {
+			RespondWithNotFound(res, "Not found")
+			return
+		}
+
+		res.WriteHeader(http.StatusNoContent)
+
 	}
 }

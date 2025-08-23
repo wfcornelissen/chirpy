@@ -38,7 +38,7 @@ type User struct {
 type UserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	Bearer   string `json:"bearer"`
+	Bearer   string `json:"Authorisation"`
 }
 
 type RefreshToken struct {
@@ -48,4 +48,8 @@ type RefreshToken struct {
 	UserID    uuid.UUID    `json:"user_id"`
 	ExpiresAt time.Time    `json:"expires_at"`
 	RevokedAt sql.NullTime `json:"revoked_at"`
+}
+
+type NewAccessTokenResponse struct {
+	Token string `json:"token"`
 }
