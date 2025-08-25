@@ -40,6 +40,7 @@ type CreatedUserResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Email     string    `json:"email"`
+	IsRedUser bool      `json:"is_chirpy_red"`
 }
 
 type LoginUserResponse struct {
@@ -49,6 +50,7 @@ type LoginUserResponse struct {
 	Email        string    `json:"email"`
 	AccessToken  string    `json:"token"`
 	RefreshToken string    `json:"refresh_token"`
+	IsRedUser    bool      `json:"is_chirpy_red"`
 }
 
 type UserRequest struct {
@@ -68,4 +70,9 @@ type RefreshToken struct {
 
 type NewAccessTokenResponse struct {
 	Token string `json:"token"`
+}
+
+type Webhook struct {
+	Event string            `json:"event"`
+	Data  map[string]string `json:"data"`
 }

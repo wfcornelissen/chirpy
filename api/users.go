@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -43,11 +44,13 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 			PasswordHash: user.Password,
 		}
 		dbUser, err := cfg.Dbquery.CreateUser(req.Context(), params)
+		fmt.Printf("%+v\n", dbUser)
 		respondUser := types.CreatedUserResponse{
 			UserID:    dbUser.ID,
 			CreatedAt: dbUser.CreatedAt.Time,
 			UpdatedAt: dbUser.UpdatedAt.Time,
 			Email:     dbUser.Email,
+			IsRedUser: dbUser.IsChirpyRed.Bool,
 		}
 
 		result, err := json.Marshal(respondUser)
@@ -104,6 +107,7 @@ func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
 			Email:        dbUser.Email,
 			AccessToken:  tokenString,
 			RefreshToken: refreshToken.Token,
+			IsRedUser:    dbUser.IsChirpyRed.Bool,
 		}
 
 		result, err := json.Marshal(responseUser)
@@ -242,6 +246,7 @@ func ChangeUserDetails(cfg *types.ApiConfig) http.HandlerFunc {
 			Email:        updatedUser.Email,
 			AccessToken:  userRequest.Bearer,
 			RefreshToken: refToken.Token,
+			IsRedUser:    user.IsChirpyRed.Bool,
 		}
 
 		response, err := json.Marshal(result)
