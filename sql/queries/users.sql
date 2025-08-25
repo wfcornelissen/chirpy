@@ -23,3 +23,7 @@ WHERE id = $1;
 -- name: UpdateUserDetails :exec
 UPDATE users SET email = $1, password_hash = $2, updated_at = NOW()
 WHERE id = $3;
+
+-- name: UpgradeToRed :exec
+UPDATE users SET is_chirpy_red = true
+WHERE id = $1;

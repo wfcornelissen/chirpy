@@ -20,7 +20,7 @@ VALUES (
     $1,
     $2
 )
-RETURNING id, created_at, updated_at, email, password_hash
+RETURNING id, created_at, updated_at, email, password_hash, is_chirpy_red
 `
 
 type CreateUserParams struct {
@@ -37,6 +37,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.Email,
 		&i.PasswordHash,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
@@ -51,7 +52,7 @@ func (q *Queries) DeleteAllUsers(ctx context.Context) error {
 }
 
 const findUser = `-- name: FindUser :one
-SELECT id, created_at, updated_at, email, password_hash FROM users
+SELECT id, created_at, updated_at, email, password_hash, is_chirpy_red FROM users
 WHERE email = $1
 `
 
@@ -64,12 +65,13 @@ func (q *Queries) FindUser(ctx context.Context, email string) (User, error) {
 		&i.UpdatedAt,
 		&i.Email,
 		&i.PasswordHash,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
 
 const findUserByUUID = `-- name: FindUserByUUID :one
-SELECT id, created_at, updated_at, email, password_hash FROM users
+SELECT id, created_at, updated_at, email, password_hash, is_chirpy_red FROM users
 WHERE id = $1
 `
 
@@ -82,6 +84,7 @@ func (q *Queries) FindUserByUUID(ctx context.Context, id uuid.UUID) (User, error
 		&i.UpdatedAt,
 		&i.Email,
 		&i.PasswordHash,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
@@ -99,5 +102,15 @@ type UpdateUserDetailsParams struct {
 
 func (q *Queries) UpdateUserDetails(ctx context.Context, arg UpdateUserDetailsParams) error {
 	_, err := q.db.ExecContext(ctx, updateUserDetails, arg.Email, arg.PasswordHash, arg.ID)
+	return err
+}
+
+const upgradeToRed = `-- name: UpgradeToRed :exec
+UPDATE users SET is_chirpy_red = true
+WHERE id = $1
+`
+
+func (q *Queries) UpgradeToRed(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, upgradeToRed, id)
 	return err
 }
