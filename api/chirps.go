@@ -123,7 +123,6 @@ func GetAllChirps(cfg *types.ApiConfig) http.HandlerFunc {
 func GetChirp(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chirpID := req.URL.Path[len("/api/chirps/"):]
-		log.Println(chirpID)
 		result, err := cfg.Dbquery.GetChirp(req.Context(), uuid.MustParse(chirpID))
 		if err != nil {
 			RespondWithNotFound(res, "Chirp not found")
@@ -138,5 +137,44 @@ func GetChirp(cfg *types.ApiConfig) http.HandlerFunc {
 		res.WriteHeader(http.StatusOK)
 		res.Write(allChirps)
 
+	}
+}
+
+func DeleteChirp(cfg *types.ApiConfig) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		token, err := auth.GetBearerToken(req.Header)
+		if err != nil {
+			RespondWithUnauthorised(res, "Access Token not found")
+			return
+		}
+
+		userID, err := auth.ValidateJWT(token, cfg.Secret)
+		if err != nil {
+			RespondWithUnauthorised(res, "Could not validate JWT")
+			return
+		}
+
+		user, err := cfg.Dbquery.FindUserByUUID(req.Context(), userID)
+		if err != nil {
+			RespondWithNotFound(res, "User not found")
+			return
+		}
+
+		chirpID := req.URL.Path[len("/api/chirps/"):]
+		chirp, err := cfg.Dbquery.GetChirp(req.Context(), uuid.MustParse(chirpID))
+		if err != nil {
+			RespondWithNotFound(res, "Chirp not found")
+			return
+		}
+		if chirp.UserID != user.ID {
+			RespondWithForbidden(res, "Not authorized to delete this chirp")
+			return
+		}
+		err = cfg.Dbquery.DeleteChirpByID(req.Context(), chirp.ID)
+		if err != nil {
+			RespondWithInternalServerError(res, "Could not delete chirp")
+			return
+		}
+		res.WriteHeader(http.StatusNoContent)
 	}
 }

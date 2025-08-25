@@ -8,12 +8,12 @@ func RespondWithBadRequest(res http.ResponseWriter, message string) {
 }
 
 func RespondWithForbidden(res http.ResponseWriter, message string) {
-	res.WriteHeader(http.StatusBadRequest)
+	res.WriteHeader(http.StatusForbidden)
 	res.Write([]byte(message))
 }
 
 func RespondWithInternalServerError(res http.ResponseWriter, message string) {
-	res.WriteHeader(http.StatusBadRequest)
+	res.WriteHeader(http.StatusInternalServerError)
 	res.Write([]byte(message))
 }
 

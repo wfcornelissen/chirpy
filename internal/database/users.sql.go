@@ -87,7 +87,7 @@ func (q *Queries) FindUserByUUID(ctx context.Context, id uuid.UUID) (User, error
 }
 
 const updateUserDetails = `-- name: UpdateUserDetails :exec
-UPDATE users SET email = $1, password_hash = $2
+UPDATE users SET email = $1, password_hash = $2, updated_at = NOW()
 WHERE id = $3
 `
 
