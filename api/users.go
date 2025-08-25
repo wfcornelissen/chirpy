@@ -43,15 +43,14 @@ func CreateUser(cfg *types.ApiConfig) http.HandlerFunc {
 			PasswordHash: user.Password,
 		}
 		dbUser, err := cfg.Dbquery.CreateUser(req.Context(), params)
-		newUser := types.User{
+		respondUser := types.CreatedUserResponse{
 			UserID:    dbUser.ID,
 			CreatedAt: dbUser.CreatedAt.Time,
 			UpdatedAt: dbUser.UpdatedAt.Time,
-			EAddress:  dbUser.Email,
-			Password:  "",
+			Email:     dbUser.Email,
 		}
 
-		result, err := json.Marshal(newUser)
+		result, err := json.Marshal(respondUser)
 		if err != nil {
 			RespondWithInternalServerError(res, "Internal Error: Couldn't Marshal JSON")
 			return
@@ -98,17 +97,16 @@ func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
 			RespondWithInternalServerError(res, "Failed to create refresh token in UserLogin")
 		}
 
-		newUser := types.User{
+		responseUser := types.LoginUserResponse{
 			UserID:       dbUser.ID,
 			CreatedAt:    dbUser.CreatedAt.Time,
 			UpdatedAt:    dbUser.UpdatedAt.Time,
-			EAddress:     dbUser.Email,
-			Password:     "",
+			Email:        dbUser.Email,
 			AccessToken:  tokenString,
-			RefreshToken: refreshToken,
+			RefreshToken: refreshToken.Token,
 		}
 
-		result, err := json.Marshal(newUser)
+		result, err := json.Marshal(responseUser)
 		if err != nil {
 			RespondWithInternalServerError(res, "Error Marshalling user in UserLogin")
 			return
@@ -121,24 +119,19 @@ func UserLogin(cfg *types.ApiConfig) http.HandlerFunc {
 
 func UserRefreshAccessToken(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		headers := req.Header
-		presence := false
-		var bearer string
-		for header := range headers {
-			if header == "Authorisation: Bearer" {
-				presence = true
-				bearer = headers[header][0]
-				break
-			}
-		}
-		if presence == false {
+		header := req.Header.Get("Authorization")
+		if !strings.HasPrefix(header, "Bearer ") {
 			RespondWithBadRequest(res, "No bearer header.")
 			return
 		}
-		token := strings.TrimPrefix(bearer, "Authorisation: Bearer ")
+		token := strings.TrimPrefix(header, "Bearer ")
 		result, err := cfg.Dbquery.GetUserFromRefreshToken(req.Context(), token)
 		if err != nil {
 			RespondWithNotFound(res, "Not found")
+			return
+		}
+		if result.RevokedAt.Valid {
+			RespondWithUnauthorised(res, "Token revoked")
 			return
 		}
 		var expiry time.Time
@@ -173,21 +166,12 @@ func UserRefreshAccessToken(cfg *types.ApiConfig) http.HandlerFunc {
 
 func UserRevokeAccessToken(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		headers := req.Header
-		presence := false
-		var bearer string
-		for header := range headers {
-			if header == "Authorisation: Bearer" {
-				presence = true
-				bearer = headers[header][0]
-				break
-			}
-		}
-		if presence == false {
+		header := req.Header.Get("Authorization")
+		if !strings.HasPrefix(header, "Bearer ") {
 			RespondWithBadRequest(res, "No bearer header.")
 			return
 		}
-		token := strings.TrimPrefix(bearer, "Authorisation: Bearer ")
+		token := strings.TrimPrefix(header, "Bearer ")
 		err := cfg.Dbquery.RevokeToken(req.Context(), token)
 		if err != nil {
 			RespondWithNotFound(res, "Not found")

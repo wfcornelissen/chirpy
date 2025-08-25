@@ -15,6 +15,8 @@ func AdminDeleteUsers(cfg *types.ApiConfig) http.HandlerFunc {
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		cfg.Dbquery.DeleteAllUsers(req.Context())
+		cfg.Dbquery.DeleteAllChirps(req.Context())
+		cfg.Dbquery.DeleteAllTokens(req.Context())
 		res.WriteHeader(http.StatusOK)
 	}
 }

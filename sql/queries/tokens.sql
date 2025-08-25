@@ -31,3 +31,6 @@ WHERE token = $1;
 -- name: GetUserFromRefreshToken :one
 SELECT * FROM refresh_tokens
 WHERE token = $1;
+
+-- name: DeleteAllTokens :exec
+DELETE FROM refresh_tokens;
