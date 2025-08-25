@@ -85,3 +85,19 @@ func (q *Queries) FindUserByUUID(ctx context.Context, id uuid.UUID) (User, error
 	)
 	return i, err
 }
+
+const updateUserDetails = `-- name: UpdateUserDetails :exec
+UPDATE users SET email = $1, password_hash = $2
+WHERE id = $3
+`
+
+type UpdateUserDetailsParams struct {
+	Email        string
+	PasswordHash string
+	ID           uuid.UUID
+}
+
+func (q *Queries) UpdateUserDetails(ctx context.Context, arg UpdateUserDetailsParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserDetails, arg.Email, arg.PasswordHash, arg.ID)
+	return err
+}

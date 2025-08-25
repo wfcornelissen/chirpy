@@ -24,9 +24,6 @@ func CreateChirp(cfg *types.ApiConfig) http.HandlerFunc {
 			return
 		}
 
-		log.Printf("Token: %s", userToken)
-		log.Printf("Secret: %s", cfg.Secret)
-
 		userID, err := auth.ValidateJWT(userToken, cfg.Secret)
 		if err != nil {
 			log.Printf("JWT validation error: %v", err)

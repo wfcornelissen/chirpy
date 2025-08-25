@@ -182,3 +182,75 @@ func UserRevokeAccessToken(cfg *types.ApiConfig) http.HandlerFunc {
 
 	}
 }
+
+func ChangeUserDetails(cfg *types.ApiConfig) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		userRequest := types.UserRequest{}
+
+		decoder := json.NewDecoder(req.Body)
+		err := decoder.Decode(&userRequest)
+		if err != nil {
+			RespondWithInternalServerError(res, "Error decoding json in ChangeUserDetails")
+			return
+		}
+		userRequest.Bearer, err = auth.GetBearerToken(req.Header)
+		if err != nil {
+			RespondWithUnauthorised(res, "Access token not found in ChangeUserDetails")
+		}
+
+		if userRequest.Bearer == "" {
+			RespondWithUnauthorised(res, "No token provided in ChangeUserDetails")
+			return
+		}
+
+		userID, err := auth.ValidateJWT(userRequest.Bearer, cfg.Secret)
+		if err != nil {
+			RespondWithUnauthorised(res, "Token could not be validated in ChangeUserDetails")
+			return
+		}
+
+		user, err := cfg.Dbquery.FindUserByUUID(req.Context(), userID)
+		if err != nil {
+			RespondWithNotFound(res, "User not found in ChangeUserDetails")
+			return
+		}
+
+		hashedPass, err := auth.HashPassword(userRequest.Password)
+		if err != nil {
+			RespondWithInternalServerError(res, "Unable to hash password in ChangeUserDetails")
+			return
+		}
+
+		updatedUser := database.UpdateUserDetailsParams{
+			ID:           user.ID,
+			PasswordHash: hashedPass,
+			Email:        userRequest.Email,
+		}
+
+		err = cfg.Dbquery.UpdateUserDetails(req.Context(), updatedUser)
+		if err != nil {
+			RespondWithInternalServerError(res, "Failed to update user details")
+			return
+		}
+
+		refToken, err := auth.MakeRefreshToken(cfg, user.ID, req)
+
+		result := types.LoginUserResponse{
+			UserID:       user.ID,
+			CreatedAt:    user.CreatedAt.Time,
+			UpdatedAt:    time.Now(),
+			Email:        updatedUser.Email,
+			AccessToken:  userRequest.Bearer,
+			RefreshToken: refToken.Token,
+		}
+
+		response, err := json.Marshal(result)
+		if err != nil {
+			RespondWithInternalServerError(res, "Unable to marshal response")
+		}
+
+		res.WriteHeader(http.StatusOK)
+		res.Write(response)
+
+	}
+}
