@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/google/uuid"
@@ -104,12 +105,31 @@ func CreateChirp(cfg *types.ApiConfig) http.HandlerFunc {
 
 func GetAllChirps(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		result, err := cfg.Dbquery.GetAllChirps(req.Context())
+		optAuth := req.URL.Query().Get("author_id")
+		chirps, err := cfg.Dbquery.GetAllChirps(req.Context())
 		if err != nil {
 			RespondWithInternalServerError(res, "Error retrieving from DB.")
 		}
+		results := make([]database.Chirp, 0)
 
-		allChirps, err := json.Marshal(result)
+		if optAuth != "" {
+			for chirp := range chirps {
+				if chirps[chirp].UserID.String() == optAuth {
+					results = append(results, chirps[chirp])
+				}
+			}
+		} else {
+			results = chirps
+		}
+		optSort := req.URL.Query().Get("sort")
+		switch optSort {
+		case "desc":
+			sort.Slice(results, func(i, j int) bool { return results[j].CreatedAt.Time.Before(results[i].CreatedAt.Time) })
+		case "asc", "":
+			sort.Slice(results, func(i, j int) bool { return results[i].CreatedAt.Time.Before(results[j].CreatedAt.Time) })
+		}
+
+		allChirps, err := json.Marshal(results)
 		if err != nil {
 			RespondWithInternalServerError(res, "Trouble encoding")
 		}
