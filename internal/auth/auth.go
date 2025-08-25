@@ -107,3 +107,17 @@ func MakeRefreshToken(cfg *types.ApiConfig, userID uuid.UUID, req *http.Request)
 
 	return token, nil
 }
+
+func GetAPIKey(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+	if authHeader == "" {
+		return "", nil
+	}
+
+	token := strings.TrimPrefix(authHeader, "ApiKey ")
+	if token == authHeader {
+		return "", nil
+	}
+
+	return token, nil
+}

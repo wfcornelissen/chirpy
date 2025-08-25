@@ -5,14 +5,26 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/wfcornelissen/chirpy/internal/auth"
 	"github.com/wfcornelissen/chirpy/types"
 )
 
 func UpgradeToRed(cfg *types.ApiConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		key, err := auth.GetAPIKey(req.Header)
+		if err != nil {
+			RespondWithBadRequest(res, "Key not found")
+			return
+		}
+
+		if key != cfg.PolkaKey {
+			RespondWithUnauthorised(res, "Unauthorized")
+			return
+		}
+
 		request := types.Webhook{}
 		decoder := json.NewDecoder(req.Body)
-		err := decoder.Decode(&request)
+		err = decoder.Decode(&request)
 		if err != nil {
 			RespondWithBadRequest(res, "Request does not conform to expectated format.")
 			return

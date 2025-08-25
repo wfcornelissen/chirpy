@@ -14,6 +14,7 @@ type ApiConfig struct {
 	Dbquery        *database.Queries
 	Platform       string
 	Secret         string
+	PolkaKey       string
 }
 
 type Chirp struct {

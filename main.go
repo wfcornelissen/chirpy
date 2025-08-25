@@ -29,6 +29,7 @@ func main() {
 	cfg.Dbquery = database.New(db)
 	cfg.Platform = os.Getenv("PLATFORM")
 	cfg.Secret = os.Getenv("SECRET_KEY")
+	cfg.PolkaKey = os.Getenv("POLKA_KEY")
 	if cfg.Platform == "" || cfg.Secret == "" {
 		log.Fatal("PLATFORM or SECRET must still be set")
 	}
